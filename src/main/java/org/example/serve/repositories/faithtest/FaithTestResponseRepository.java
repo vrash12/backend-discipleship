@@ -23,5 +23,7 @@ public interface FaithTestResponseRepository extends JpaRepository<FaithTestResp
     // Add this method to your `FaithTestResponseRepository`
     Optional<FaithTestResponse> findById(Long responseId);
 
+    int countByUserId(Long userId);
+
 
 }

@@ -5,6 +5,7 @@ import org.example.serve.dto.FaithTestResponseDTO;
 import org.example.serve.dto.QuestionDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.example.serve.dto.UserFaithTestStatusDTO;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -66,14 +67,16 @@ public class FaithTestController {
 
     // Add this method to your `FaithTestController`
     @GetMapping("/all-users")
-    public ResponseEntity<List<User>> getAllUsersWithCompletedFaithTest() {
+    public ResponseEntity<List<UserFaithTestStatusDTO>> getAllUsersWithFaithTestStatus() {
         try {
-            List<User> users = faithTestService.getAllUsersWithCompletedFaithTest();
+            List<UserFaithTestStatusDTO> users = faithTestService.getAllUsersWithFaithTestStatus();
             return ResponseEntity.ok(users);
         } catch (Exception e) {
+            logger.error("Error fetching users with faith test status: ", e);
             return ResponseEntity.status(500).body(null);
         }
     }
+
 
     @GetMapping("/{userId}/responses")
     public ResponseEntity<List<FaithTestResponseDTO>> getUserResponses(@PathVariable Long userId) {

@@ -36,21 +36,18 @@ public class SermonController {
         return sermonService.getAllSermons();
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id:\\d+}")
     public ResponseEntity<Sermon> getSermonById(@PathVariable Long id) {
         Optional<Sermon> sermon = sermonService.getSermonById(id);
         return sermon.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // Remove or comment out the PreAuthorize annotations for testing
-    // @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public Sermon createSermon(@RequestBody Sermon sermon) {
         return sermonService.saveSermon(sermon);
     }
 
-    // @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/{id}")
+    @PutMapping("/{id:\\d+}")
     public ResponseEntity<Sermon> updateSermon(@PathVariable Long id, @RequestBody Sermon updatedSermon) {
         Optional<Sermon> sermonOptional = sermonService.getSermonById(id);
 
@@ -67,7 +64,7 @@ public class SermonController {
         }
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id:\\d+}")
     public ResponseEntity<Void> deleteSermon(@PathVariable Long id) {
         sermonService.deleteSermon(id);
         return ResponseEntity.noContent().build();
@@ -172,7 +169,8 @@ public class SermonController {
             throw e;
         }
 
-        // Return the file's URL
+        // Return the file's URL (adjust according to your application's needs)
         return "/uploaded_files/" + originalFilename;
     }
 }
+

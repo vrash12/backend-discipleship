@@ -1,11 +1,19 @@
 package org.example.serve.model;
 
 import jakarta.persistence.*;
+import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Table(name = "users") // Root class in the hierarchy declares the table mapping
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "user_type", discriminatorType = DiscriminatorType.STRING)
+@JsonIdentityInfo(
+        generator = ObjectIdGenerators.PropertyGenerator.class,
+        property = "id")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) // Ignore Hibernate proxy properties
 public class User {
 
     @Id
@@ -13,8 +21,12 @@ public class User {
     private Long id;
 
     private String name;
+
+    @Column(unique = true, nullable = false)
     private String email;
+
     private String password;
+
     private boolean approved = false;
 
     @Column(nullable = false)
@@ -23,8 +35,22 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    /**
+     * Many users can have one leader.
+     * Using LAZY fetching to optimize performance.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "leader_id")
+    private User leader;
 
+    /**
+     * One user can have many subordinates.
+     * The 'mappedBy' attribute indicates that the 'leader' field owns the relationship.
+     */
+    @OneToMany(mappedBy = "leader", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<User> subordinates;
 
+    // Constructors
     public User() {
     }
 
@@ -33,14 +59,10 @@ public class User {
         this.email = email;
     }
 
-    // Getters and Setters...
+    // Getters and Setters
 
     public Long getId() {
         return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public String getName() {
@@ -67,14 +89,6 @@ public class User {
         this.password = password;
     }
 
-    public Role getRole() {
-        return role;
-    }
-
-    public void setRole(Role role) {
-        this.role = role;
-    }
-
     public boolean isApproved() {
         return approved;
     }
@@ -82,6 +96,7 @@ public class User {
     public void setApproved(boolean approved) {
         this.approved = approved;
     }
+
     public Boolean getHasCompletedFaithTest() {
         return hasCompletedFaithTest;
     }
@@ -90,4 +105,27 @@ public class User {
         this.hasCompletedFaithTest = hasCompletedFaithTest;
     }
 
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
+    }
+
+    public User getLeader() {
+        return leader;
+    }
+
+    public void setLeader(User leader) {
+        this.leader = leader;
+    }
+
+    public List<User> getSubordinates() {
+        return subordinates;
+    }
+
+    public void setSubordinates(List<User> subordinates) {
+        this.subordinates = subordinates;
+    }
 }

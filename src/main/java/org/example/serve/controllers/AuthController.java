@@ -1,3 +1,5 @@
+// AuthController.java
+
 package org.example.serve.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +18,10 @@ import java.util.Optional;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.http.HttpStatus;
+
 @RestController
+@RequestMapping("/api/auth")  // Added class-level mapping
 public class AuthController {
 
     @Autowired
@@ -28,7 +33,8 @@ public class AuthController {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
-    @PostMapping("/api/admin-signup")
+
+    @PostMapping("/admin-signup")
     public ResponseEntity<String> adminSignUp(@RequestBody Admin admin) {
         // Admin signup logic
         Optional<User> existingUser = userRepository.findByEmail(admin.getEmail());
@@ -48,6 +54,7 @@ public class AuthController {
 
         return ResponseEntity.ok("Admin signup request submitted successfully. Awaiting approval.");
     }
+
     @GetMapping("/request-status/{requestId}")
     public ResponseEntity<?> getRequestDetails(@PathVariable Long requestId) {
         Optional<AdminRequest> adminRequest = adminRequestRepository.findById(requestId);
@@ -63,7 +70,6 @@ public class AuthController {
         }
     }
 
-
     // Endpoint to fetch all pending admin requests
     @GetMapping("/requests/pending")
     public ResponseEntity<List<AdminRequest>> getPendingAdminRequests() {
@@ -75,7 +81,6 @@ public class AuthController {
         }
         return ResponseEntity.ok(pendingRequests);
     }
-
 
     @PostMapping("/requests/approve/{requestId}")
     public ResponseEntity<String> approveRequest(@PathVariable Long requestId) {
@@ -100,6 +105,7 @@ public class AuthController {
 
         return ResponseEntity.ok("Request approved successfully");
     }
+
     @PostMapping("/requests/reject/{requestId}")
     public ResponseEntity<String> rejectRequest(@PathVariable Long requestId) {
         Optional<AdminRequest> adminRequestOptional = adminRequestRepository.findById(requestId);
@@ -115,8 +121,7 @@ public class AuthController {
         return ResponseEntity.ok("Request rejected successfully");
     }
 
-
-    @PostMapping("/api/user-signup")
+    @PostMapping("/user-signup")
     public ResponseEntity<String> userSignUp(@RequestBody User user) {
         Optional<User> existingUser = userRepository.findByEmail(user.getEmail());
         if (existingUser.isPresent()) {
@@ -131,12 +136,25 @@ public class AuthController {
         return ResponseEntity.ok("User registered successfully.");
     }
 
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody User user) {
+        Optional<User> existingUserOpt = userRepository.findByEmail(user.getEmail());
+        if (existingUserOpt.isPresent()) {
+            User existingUser = existingUserOpt.get();
+            if (passwordEncoder.matches(user.getPassword(), existingUser.getPassword())) {
+                // Create a response map with necessary user details
+                Map<String, Object> response = new HashMap<>();
+                response.put("id", existingUser.getId());
+                response.put("name", existingUser.getName());
+                response.put("role", existingUser.getRole().toString());
 
-    @GetMapping("/users")
-    public ResponseEntity<List<User>> getAllUsers() {
-        List<User> users = userService.getAllUsers();
-        return ResponseEntity.ok(users);
+                // Optionally, you can include a JWT token here for authentication
+                // String token = jwtTokenProvider.generateToken(existingUser);
+                // response.put("token", token);
+
+                return ResponseEntity.ok(response);
+            }
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
     }
-
-
 }

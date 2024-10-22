@@ -15,6 +15,7 @@ import org.example.serve.repositories.faithtest.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 //import faithtest.FaithTestResponseDTO;
+import org.example.serve.dto.UserFaithTestStatusDTO;
 import org.example.serve.dto.FaithTestResponseDTO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -42,6 +43,7 @@ public class FaithTestService {
 
     @Autowired
     private UserFaithTestStatusRepository userFaithTestStatusRepository;
+
 
     // Method to get questions based on the selected language
     public List<QuestionDTO> getQuestionsByLanguage(String language) {
@@ -179,6 +181,31 @@ public class FaithTestService {
         dto.setTestId(response.getFaithTest().getTestId());
         dto.setSelectedAnswerEnglish(response.getSelectedAnswer()); // Assuming English, can be changed
         return dto;
+    }
+
+
+
+    public List<UserFaithTestStatusDTO> getAllUsersWithFaithTestStatus() {
+        List<User> allUsers = userRepository.findAll();
+        List<UserFaithTestStatusDTO> userStatusList = new ArrayList<>();
+
+        int totalQuestions = (int) faithTestRepository.count();
+
+
+        for (User user : allUsers) {
+            int userResponses = faithTestResponseRepository.countByUserId(user.getId());
+            boolean hasCompleted = userResponses >= totalQuestions;
+
+            UserFaithTestStatusDTO dto = new UserFaithTestStatusDTO(
+                    user.getId(),
+                    user.getName(),
+                    user.getEmail(),
+                    hasCompleted
+            );
+            userStatusList.add(dto);
+        }
+
+        return userStatusList;
     }
 
 
